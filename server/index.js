@@ -26,7 +26,7 @@ mongoose.connection.on('error', (err) => {
 
 (async function start() {
     try {
-        await mongoose.connect(process.env.DATABASE_URL, {
+        await mongoose.connect(process.env.MONGODB_URI, {
             useCreateIndex: true,
             useNewUrlParser: true,
             useFindAndModify: false
