@@ -59,7 +59,7 @@ module.exports = class Logger {
                         string += colors[(val.toLowerCase())](`[${val} - "${msg[val]}"]`);
                         break;
                     case 'time' :
-                        string += colors[(val.toLowerCase())](` Response time: ${ msg[val] / 10 }s`);
+                        string += colors[(val.toLowerCase())](` Response time: ${ msg[val]}ms`);
                         break;
                     case 'status' :
                         let status = '';
