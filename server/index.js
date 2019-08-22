@@ -19,7 +19,7 @@ app.use(require('./helpers/debugger'))
         saveUninitialized: true,
         cookie: { maxAge: 24 * 60 * 60 * 1000 }
     }))
-    .use('/api', require('./controllers'))
+    .use('/api', require('./controllers'));
 
 
 
