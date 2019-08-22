@@ -1,46 +1,38 @@
 require('dotenv').config();
 const express = require('express');
-const mongoose = require('mongoose');
+const bodyParser = require('body-parser');
+const session = require('express-session');
+const Logger = require('./helpers/logger');
 const path = require('path');
-
-const logger = new (require('./helpers/logger'))();
-const controllers = require('./controllers');
-
 const PORT = process.env.PORT || 5000;
-const PATH = path.join(__dirname,'../dist/');
+const PATH = path.join(__dirname, '../dist/');
 const app = express();
 
-app.use(require('./helpers/timelines'))
-    .use(require('./helpers/errors'))
-    .use(express.urlencoded({extended: true}))
-    .use('/api', controllers);
+const logger = new Logger();
 
-mongoose.connection.on('connected', () => {
-    logger.info('Succesfully connected to MongoDB Database')
-});
+app.use(require('./helpers/debugger'))
+    .use(bodyParser.json())
+    // .use(bodyParser.urlencoded({extended: false}))
+    .use(session({
+        secret: process.env.SECRET,
+        resave: false,
+        saveUninitialized: true,
+        cookie: { maxAge: 24 * 60 * 60 * 1000 }
+    }))
+    .use('/api', require('./controllers'))
 
-mongoose.connection.on('error', (err) => {
-    logger.error("Database Connection Error: " + err);
-    process.exit(2);
-});
+
 
 (async function start() {
     try {
-        await mongoose.connect(process.env.MONGODB_URI, {
-            useCreateIndex: true,
-            useNewUrlParser: true,
-            useFindAndModify: false
-        });
-
+        await require('./database')(process.env.MONGODB_URI)
+            .then((msg) => { logger.log(msg) });
         app.listen(PORT, () => {
-            app.get(/.*/, (req, res) => res.sendFile(PATH + 'index.html'));
-            logger.info(`Running server at port ${PORT}!`);
+            logger.log(`Running server at port ${PORT}!`);
+            app.get('*', (req, res) => res.sendFile(PATH + 'index.html'));
         });
 
     } catch (error) {
         logger.error(error);
     }
 })();
-
-
-

@@ -3,22 +3,27 @@ const mongoose = require('mongoose');
 const userSchema = new mongoose.Schema({
     username: {
         type: String,
-        required: [true, "usernameRequired"],
-        maxlength: [32, "tooLong"],
-        minlength: [6, "tooShort"],
-        match: [/^[A-Za-z0-9]+$/, "usernameIncorrect"],
-        unique: true
+        unique: true,
+        required: [true, "User Name is Required."],
+        maxlength: [32, "User Name too Long."],
+        minlength: [6, "User Name too Short."],
+        match: [/^[A-Za-z0-9]+$/, "User Name incorrect."]
     },
     email: {
         type: String,
-        required: true,
+        unique: true,
+        trim: true,
+        lowercase: true,
+        match: [/^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/, 'Email incorrect.']
     },
     password: {
         type: String,
-        maxlength: [32, "tooLong"],
-        minlength: [8, "tooShort"],
-        match: [/^[A-Za-z0-9]+$/, "passwordIncorrect"],
-        required: [true, "passwordRequired"]
+        required: [true, "Password is Required."]
+    },
+
+    status: {
+        type: Number,
+        required: [true, "Status is required, [GUEST: 1] by default"]
     },
     firstName: String,
     lastName: String,

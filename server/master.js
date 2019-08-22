@@ -1,9 +1,10 @@
 const cluster = require('cluster');
-const logger = new (require('./helpers/logger'))();
 const CPUCount = 1 || require('os').cpus().length;
+const Logger = require('./helpers/logger');
+const logger = new Logger();
 
 cluster.on('disconnect', (worker, code, signal) => {
-    logger.info(`Worker ${worker.id} died`);
+    logger.warn(`Worker ${worker.id} died`);
     cluster.fork();
 });
 

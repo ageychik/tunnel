@@ -1,18 +1,19 @@
 const util = require('util');
 const path = require('path');
-
-
+const colors = require('colors');
+const dateFormat = require('dateformat');
 
 module.exports = class Logger {
-    constructor() {
-        function generateLogFunction(level) {
-            return function(message,meta) {
-                let mes = '[' + level + '] ';
-                mes += message;
-                if(meta) mes += "  " + util.inspect(meta) + " ";
-                mes += '\n';
 
+    constructor() {
+
+        function generateLogFunction(level) {
+            return function (message, meta) {
+                let mes = (level ? this.styles(level) : '') + ((meta) ?  this.styles(meta) : '') + message;
+                // this.getDemo();
                 this.write(mes);
+                return mes;
+
             }
         }
 
@@ -21,11 +22,96 @@ module.exports = class Logger {
         this.info = generateLogFunction('Info');
         this.error = generateLogFunction('Error');
         this.warn = generateLogFunction('Warning');
+        this.debug = generateLogFunction();
     }
-    write(d)
-    {
-        this.streams.forEach((stream)=>{
-            stream.write(d);
+
+    styles(msg) {
+        colors.setTheme({
+            log: 'cyan',
+            info: 'magenta',
+            error: 'red',
+            warn: 'yellow',
+            method: 'blue',
+            url: 'yellow',
+            time: 'magenta',
+            date: 'white',
+            wait: 'blue',
+            success: 'green',
+            redirection: 'cyan'
+        });
+        if(typeof msg === 'string'){
+            return colors[(msg.toLowerCase())](`[${msg}]`);
+        }
+
+        if(typeof msg === 'object'){
+            let string = '';
+
+            Object.keys(msg).forEach(function (val) {
+
+                switch (val.toLowerCase()) {
+                    case 'date' :
+                        string += colors[(val.toLowerCase())](`[${dateFormat(msg[val], 'HH:MM:ss')}]`);
+                        break;
+                    case 'method' :
+                        string += colors[(val.toLowerCase())](`[${msg[val]}]`);
+                        break;
+                    case 'url' :
+                        string += colors[(val.toLowerCase())](`[${val} - "${msg[val]}"]`);
+                        break;
+                    case 'time' :
+                        string += colors[(val.toLowerCase())](` Response time: ${ msg[val] / 10 }s`);
+                        break;
+                    case 'status' :
+                        let status = '';
+                        if(msg[val][0] >= 100 && msg[val][0] <= 102) status = 'info';
+                        if(msg[val][0] >= 200 && msg[val][0] <= 208) status = 'success';
+                        if(msg[val][0] >= 300 && msg[val][0] <= 308) status = 'redirection';
+                        if(msg[val][0] >= 400) status = 'error';
+
+                        string += colors[status](`[${ msg[val][1] }]`);
+                        break;
+                    default     :
+                        string += colors.white(`[${val}:${msg[val]}]`);
+                        break
+                }
+
+                if(val === 'date'){
+
+                    return true;
+                }
+
+                if(val === 'method'){//Response time
+
+                    return true;
+                }
+
+                // if(val === 'date'){
+                //     string += colors[(val.toLowerCase())](`[${dateFormat(msg[val], 'HH:MM:ss')}]`);
+                //     return true;
+                // }
+
+            });
+
+            return string;
+        }
+    }
+
+    getDemo (){
+        this.write(colors.black  ('\n   Demo for colors:    Demo for background:            Extra demos:\n'));
+        this.write(colors.red    ('   color: red          '+  colors.gray.bgBlack  ('   background: bgBlack    ') +'      '+ colors.rainbow('extra fornts: rainbow')));
+        this.write(colors.green  ('   color: green        '+  colors.gray.bgRed    ('   background: bgRed      ') +'      '+ colors.zebra  ('extra fornts: zebra')));
+        this.write(colors.yellow ('   color: yellow       '+  colors.gray.bgGreen  ('   background: bgGreen    ') +'      '+ colors.america('extra fornts: america')));
+        this.write(colors.blue   ('   color: blue         '+  colors.gray.bgYellow ('   background: bgYellow   ') +'      '+ colors.trap   ('extra fornts: trap')));
+        this.write(colors.magenta('   color: magenta      '+  colors.gray.bgBlue   ('   background: bgBlue     ') +'      '+ colors.random ('extra fornts: random')));
+        this.write(colors.cyan   ('   color: cyan         '+  colors.gray.bgMagenta('   background: bgMagenta  ')));
+        this.write(colors.white  ('   color: white        '+  colors.gray.bgCyan   ('   background: bgCyan     ')));
+        this.write(colors.gray   ('   color: gray         '+  colors.gray.bgWhite  ('   background: bgWhite    \n')));
+    }
+
+    write(msg) {
+        this.streams.forEach((stream) => {
+            stream.write(msg + '\n');
         });
     }
-}
+
+};
