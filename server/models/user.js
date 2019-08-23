@@ -23,6 +23,7 @@ const userSchema = new mongoose.Schema({
 
     status: {
         type: Number,
+        default: 1,
         required: [true, "Status is required, [GUEST: 1] by default"]
     },
     firstName: String,

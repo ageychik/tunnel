@@ -23,6 +23,45 @@ module.exports = class Logger {
         this.error = generateLogFunction('Error');
         this.warn = generateLogFunction('Warning');
         this.debug = generateLogFunction();
+        this.log = function (text){
+            let stop = false;
+            let beginTime = Date.now();
+
+            function* generatror(){
+                let _str = `[${ dateFormat(beginTime, 'HH:MM:ss') }] ${text ? text : ''} start.`;
+                let _color = 'white';
+                let data;
+
+                this.write(colors[_color](_str));
+                data = yield;
+                while(!stop){
+                    if(data){
+                        _str = data.text || '[Next logger event]';
+                        _color = data.color || 'white';
+                    }
+
+                    this.write('  ' + colors[_color](_str));
+                    data = yield;
+
+                    if(stop){
+                        this.write(colors.white(`[${ dateFormat(Date.now(), 'HH:MM:ss') }] ${text ? text : ''} letter: `) + colors.green(`${(Date.now() - beginTime) / 1000}s`))
+                    }
+                }
+            }
+
+            let foo = generatror.apply(this);
+                foo.next(text);
+            return {
+                end: () => {
+                    stop = true;
+                    foo.next();
+                },
+                add ({ color = 'white', text }){
+                    foo.next({color: color, text: text})
+                }
+            }
+        }
+
     }
 
     styles(msg) {
@@ -30,6 +69,7 @@ module.exports = class Logger {
             log: 'cyan',
             info: 'magenta',
             error: 'red',
+            warning: 'yellow',
             warn: 'yellow',
             method: 'blue',
             url: 'yellow',
@@ -74,21 +114,6 @@ module.exports = class Logger {
                         string += colors.white(`[${val}:${msg[val]}]`);
                         break
                 }
-
-                if(val === 'date'){
-
-                    return true;
-                }
-
-                if(val === 'method'){//Response time
-
-                    return true;
-                }
-
-                // if(val === 'date'){
-                //     string += colors[(val.toLowerCase())](`[${dateFormat(msg[val], 'HH:MM:ss')}]`);
-                //     return true;
-                // }
 
             });
 
